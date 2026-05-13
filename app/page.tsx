@@ -6,26 +6,64 @@ import AnswerForm from "@/components/AnswerForm";
 import Feedback from "@/components/Feedback";
 import StatsPanel from "@/components/StatsPanel";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { getProgress, recordAnswer } from "@/lib/progress";
+import PinEntry from "@/components/PinEntry";
+import {
+  getStoredPin,
+  setStoredPin,
+  getProgress,
+  defaultProgress,
+  loadProgressFromServer,
+  saveProgressToServer,
+  recordAnswer,
+} from "@/lib/progress";
 import type { Question, GradeResponse } from "@/lib/types";
 import type { Progress } from "@/lib/progress";
 
-type AppState = "loading" | "answering" | "grading" | "feedback";
+type AppState = "pin" | "loading" | "answering" | "grading" | "feedback";
 type Difficulty = "easy" | "medium" | "hard";
 
 export default function Home() {
-  const [state, setState] = useState<AppState>("loading");
+  const [state, setState] = useState<AppState>("pin");
+  const [pin, setPin] = useState<string | null>(null);
+  const [pinLoading, setPinLoading] = useState(true);
+  const [pinError, setPinError] = useState<string | null>(null);
   const [question, setQuestion] = useState<Question | null>(null);
   const [feedback, setFeedback] = useState<GradeResponse | null>(null);
   const [questionNumber, setQuestionNumber] = useState(1);
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [error, setError] = useState<string | null>(null);
-  const [progress, setProgress] = useState<Progress | null>(null);
+  const [progress, setProgress] = useState<Progress>(defaultProgress());
   const [lastXpGain, setLastXpGain] = useState<number>(0);
 
   useEffect(() => {
-    setProgress(getProgress());
+    const stored = getStoredPin();
+    if (stored) {
+      handlePinSubmit(stored);
+    } else {
+      setPinLoading(false);
+    }
   }, []);
+
+  const handlePinSubmit = async (enteredPin: string) => {
+    setPinLoading(true);
+    setPinError(null);
+
+    try {
+      const loaded = await loadProgressFromServer(enteredPin);
+      setPin(enteredPin);
+      setStoredPin(enteredPin);
+      setProgress(loaded);
+      setState("loading");
+    } catch {
+      const local = getProgress();
+      setPin(enteredPin);
+      setStoredPin(enteredPin);
+      setProgress(local);
+      setState("loading");
+    } finally {
+      setPinLoading(false);
+    }
+  };
 
   const generateQuestion = useCallback(async () => {
     setState("loading");
@@ -54,15 +92,17 @@ export default function Home() {
   }, [difficulty]);
 
   useEffect(() => {
-    generateQuestion();
-  }, [generateQuestion]);
+    if (state === "loading" && pin) {
+      generateQuestion();
+    }
+  }, [state, pin, generateQuestion]);
 
   const handleSubmit = async (
     input: string,
     processing: string,
     output: string
   ) => {
-    if (!question) return;
+    if (!question || !pin) return;
 
     setState("grading");
     setError(null);
@@ -84,8 +124,9 @@ export default function Home() {
       const data: GradeResponse = await res.json();
       setFeedback(data);
 
-      const prevXp = progress?.xp || 0;
+      const prevXp = progress.xp;
       const updated = recordAnswer(
+        progress,
         data.marks,
         data.maxMarks,
         question.topic,
@@ -93,6 +134,8 @@ export default function Home() {
       );
       setProgress(updated);
       setLastXpGain(updated.xp - prevXp);
+
+      saveProgressToServer(pin, updated).catch(() => {});
 
       setState("feedback");
     } catch {
@@ -106,6 +149,30 @@ export default function Home() {
     generateQuestion();
   };
 
+  const handleLogout = () => {
+    setPin(null);
+    setState("pin");
+    setPinLoading(false);
+    localStorage.removeItem("gcse-python-pin");
+  };
+
+  if (state === "pin") {
+    if (pinLoading) {
+      return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <LoadingSpinner message="Loading your progress..." />
+        </div>
+      );
+    }
+    return (
+      <PinEntry
+        onSubmit={handlePinSubmit}
+        isLoading={pinLoading}
+        error={pinError}
+      />
+    );
+  }
+
   return (
     <main className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -117,20 +184,29 @@ export default function Home() {
             </h1>
             <p className="text-xs text-slate-500">Question {questionNumber}</p>
           </div>
-          <div className="flex gap-1">
-            {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
-              <button
-                key={d}
-                onClick={() => setDifficulty(d)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                  difficulty === d
-                    ? "bg-indigo-600 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {d}
-              </button>
-            ))}
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1">
+              {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setDifficulty(d)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                    difficulty === d
+                      ? "bg-indigo-600 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={handleLogout}
+              className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+              title="Switch user"
+            >
+              🔒
+            </button>
           </div>
         </div>
       </header>
@@ -144,7 +220,7 @@ export default function Home() {
         )}
 
         {/* Stats Panel */}
-        {progress && progress.totalQuestions > 0 && (
+        {progress.totalQuestions > 0 && (
           <div className="mb-6">
             <StatsPanel progress={progress} xpGained={lastXpGain} />
           </div>

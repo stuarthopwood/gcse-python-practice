@@ -18,11 +18,21 @@ export interface Progress {
 }
 
 const STORAGE_KEY = "gcse-python-progress";
+const PIN_KEY = "gcse-python-pin";
 
 const XP_PER_MARK = 10;
 const XP_PER_PERFECT = 50;
 const XP_PER_LEVEL = 100;
 const STREAK_BONUS_THRESHOLD = 3;
+
+export function getStoredPin(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(PIN_KEY);
+}
+
+export function setStoredPin(pin: string): void {
+  localStorage.setItem(PIN_KEY, pin);
+}
 
 export function getProgress(): Progress {
   if (typeof window === "undefined") {
@@ -33,13 +43,38 @@ export function getProgress(): Progress {
   return JSON.parse(stored);
 }
 
+export function setProgress(progress: Progress): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+}
+
+export async function loadProgressFromServer(pin: string): Promise<Progress> {
+  const res = await fetch(`/api/progress?pin=${encodeURIComponent(pin)}`);
+  const data = await res.json();
+
+  if (data.exists && data.progress) {
+    setProgress(data.progress);
+    return data.progress;
+  }
+
+  return getProgress();
+}
+
+export async function saveProgressToServer(pin: string, progress: Progress): Promise<void> {
+  await fetch("/api/progress", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pin, progress }),
+  });
+}
+
 export function recordAnswer(
+  currentProgress: Progress,
   marks: number,
   maxMarks: number,
   topic: string,
   difficulty: "easy" | "medium" | "hard"
 ): Progress {
-  const progress = getProgress();
+  const progress = { ...currentProgress, sessions: [...currentProgress.sessions] };
 
   const record: SessionRecord = {
     date: new Date().toISOString(),
@@ -80,7 +115,7 @@ export function recordAnswer(
   progress.xp += xpGained;
   progress.level = Math.floor(progress.xp / XP_PER_LEVEL) + 1;
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  setProgress(progress);
   return progress;
 }
 
@@ -103,7 +138,7 @@ export function resetProgress(): void {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-function defaultProgress(): Progress {
+export function defaultProgress(): Progress {
   return {
     totalQuestions: 0,
     totalMarks: 0,
