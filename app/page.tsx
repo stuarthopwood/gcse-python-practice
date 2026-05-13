@@ -30,7 +30,7 @@ export default function Home() {
   const [question, setQuestion] = useState<Question | null>(null);
   const [feedback, setFeedback] = useState<GradeResponse | null>(null);
   const [questionNumber, setQuestionNumber] = useState(1);
-  const [difficulty, setDifficulty] = useState<Difficulty>("medium");
+  const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<Progress>(defaultProgress());
   const [lastXpGain, setLastXpGain] = useState<number>(0);
