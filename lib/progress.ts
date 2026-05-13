@@ -52,7 +52,9 @@ export function getProgress(): Progress {
 }
 
 export function setProgress(progress: Progress): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  }
 }
 
 export async function loadProgressFromServer(pin: string): Promise<Progress> {
