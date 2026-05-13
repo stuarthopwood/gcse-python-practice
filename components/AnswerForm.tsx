@@ -25,10 +25,10 @@ export default function AnswerForm({ onSubmit, isLoading }: AnswerFormProps) {
       <div>
         <label
           htmlFor="input"
-          className="block text-base font-semibold text-slate-700 mb-2"
+          className="block text-base font-semibold text-slate-700 dark:text-slate-200 mb-2"
         >
           📥 Input
-          <span className="block text-sm font-normal text-slate-500">
+          <span className="block text-sm font-normal text-slate-500 dark:text-slate-400">
             What does the function need to work? What&apos;s being passed in?
           </span>
         </label>
@@ -36,7 +36,7 @@ export default function AnswerForm({ onSubmit, isLoading }: AnswerFormProps) {
           id="input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="w-full min-h-[100px] p-4 text-base text-slate-900 bg-white border-2 border-slate-200 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none resize-y transition-colors placeholder:text-slate-400"
+          className="w-full min-h-[100px] p-4 text-base text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 outline-none resize-y transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500"
           placeholder="e.g. It takes in a list of numbers..."
           disabled={isLoading}
         />
@@ -45,10 +45,10 @@ export default function AnswerForm({ onSubmit, isLoading }: AnswerFormProps) {
       <div>
         <label
           htmlFor="processing"
-          className="block text-base font-semibold text-slate-700 mb-2"
+          className="block text-base font-semibold text-slate-700 dark:text-slate-200 mb-2"
         >
           ⚙️ Processing
-          <span className="block text-sm font-normal text-slate-500">
+          <span className="block text-sm font-normal text-slate-500 dark:text-slate-400">
             What does it actually do, step by step?
           </span>
         </label>
@@ -56,7 +56,7 @@ export default function AnswerForm({ onSubmit, isLoading }: AnswerFormProps) {
           id="processing"
           value={processing}
           onChange={(e) => setProcessing(e.target.value)}
-          className="w-full min-h-[140px] p-4 text-base text-slate-900 bg-white border-2 border-slate-200 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none resize-y transition-colors placeholder:text-slate-400"
+          className="w-full min-h-[140px] p-4 text-base text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 outline-none resize-y transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500"
           placeholder="e.g. It loops through each item and checks if..."
           disabled={isLoading}
         />
@@ -65,10 +65,10 @@ export default function AnswerForm({ onSubmit, isLoading }: AnswerFormProps) {
       <div>
         <label
           htmlFor="output"
-          className="block text-base font-semibold text-slate-700 mb-2"
+          className="block text-base font-semibold text-slate-700 dark:text-slate-200 mb-2"
         >
           📤 Output
-          <span className="block text-sm font-normal text-slate-500">
+          <span className="block text-sm font-normal text-slate-500 dark:text-slate-400">
             What&apos;s the end result? What gets printed or sent back?
           </span>
         </label>
@@ -76,7 +76,7 @@ export default function AnswerForm({ onSubmit, isLoading }: AnswerFormProps) {
           id="output"
           value={output}
           onChange={(e) => setOutput(e.target.value)}
-          className="w-full min-h-[100px] p-4 text-base text-slate-900 bg-white border-2 border-slate-200 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none resize-y transition-colors placeholder:text-slate-400"
+          className="w-full min-h-[100px] p-4 text-base text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 outline-none resize-y transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500"
           placeholder="e.g. It prints out 42..."
           disabled={isLoading}
         />
@@ -85,7 +85,7 @@ export default function AnswerForm({ onSubmit, isLoading }: AnswerFormProps) {
       <button
         type="submit"
         disabled={!isValid || isLoading}
-        className="w-full py-4 px-6 text-lg font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors shadow-sm"
+        className="w-full py-4 px-6 text-lg font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed transition-colors shadow-sm"
       >
         {isLoading ? "Checking..." : "Check My Answer ✓"}
       </button>

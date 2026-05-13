@@ -25,6 +25,7 @@ export interface GradeResponse {
 
 export interface GenerateRequest {
   difficulty?: "easy" | "medium" | "hard";
+  recentTopics?: string[];
 }
 
 export interface GradeRequest {

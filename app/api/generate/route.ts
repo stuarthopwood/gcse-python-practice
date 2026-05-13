@@ -7,8 +7,13 @@ const anthropic = new Anthropic();
 
 export async function POST(request: Request) {
   try {
-    const body: GenerateRequest = await request.json();
+    const body = await request.json();
     const difficulty = body.difficulty || "medium";
+    const recentTopics: string[] = body.recentTopics || [];
+
+    const avoidance = recentTopics.length > 0
+      ? `\n\nIMPORTANT: Avoid these topics as they were recently used: ${recentTopics.join(", ")}. Pick a DIFFERENT concept.`
+      : "";
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
@@ -17,7 +22,7 @@ export async function POST(request: Request) {
       messages: [
         {
           role: "user",
-          content: `Generate a ${difficulty} difficulty Python code analysis question.`,
+          content: `Generate a ${difficulty} difficulty Python code analysis question.${avoidance}`,
         },
       ],
     });

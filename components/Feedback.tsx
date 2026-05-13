@@ -12,10 +12,10 @@ export default function Feedback({ feedback, onNext }: FeedbackProps) {
 
   const scoreColor =
     percentage >= 80
-      ? "text-green-600 bg-green-50 border-green-200"
+      ? "text-green-600 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/30 dark:border-green-700"
       : percentage >= 60
-        ? "text-amber-600 bg-amber-50 border-amber-200"
-        : "text-red-600 bg-red-50 border-red-200";
+        ? "text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-900/30 dark:border-amber-700"
+        : "text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/30 dark:border-red-700";
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -31,9 +31,9 @@ export default function Feedback({ feedback, onNext }: FeedbackProps) {
 
       {/* Strengths */}
       {feedback.strengths && (
-        <div className="p-4 rounded-xl bg-green-50 border border-green-200">
-          <h3 className="font-semibold text-green-800 mb-1">✅ What you did well</h3>
-          <p className="text-green-700 text-sm leading-relaxed">
+        <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+          <h3 className="font-semibold text-green-800 dark:text-green-300 mb-1">✅ What you did well</h3>
+          <p className="text-green-700 dark:text-green-400 text-sm leading-relaxed">
             {feedback.strengths}
           </p>
         </div>
@@ -41,20 +41,20 @@ export default function Feedback({ feedback, onNext }: FeedbackProps) {
 
       {/* Improvements */}
       {feedback.improvements && (
-        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
-          <h3 className="font-semibold text-amber-800 mb-1">💡 To improve</h3>
-          <p className="text-amber-700 text-sm leading-relaxed">
+        <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+          <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-1">💡 To improve</h3>
+          <p className="text-amber-700 dark:text-amber-400 text-sm leading-relaxed">
             {feedback.improvements}
           </p>
         </div>
       )}
 
       {/* Model Answer */}
-      <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-200">
-        <h3 className="font-semibold text-indigo-800 mb-3">
+      <div className="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
+        <h3 className="font-semibold text-indigo-800 dark:text-indigo-300 mb-3">
           📝 Model Answer
         </h3>
-        <div className="space-y-3 text-sm text-indigo-900">
+        <div className="space-y-3 text-sm text-indigo-900 dark:text-indigo-200">
           <div>
             <span className="font-semibold">Input:</span>{" "}
             {feedback.modelAnswer.input}

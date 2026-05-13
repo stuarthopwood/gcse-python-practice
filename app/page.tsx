@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import CodeBlock from "@/components/CodeBlock";
 import AnswerForm from "@/components/AnswerForm";
 import Feedback from "@/components/Feedback";
@@ -34,6 +34,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<Progress>(defaultProgress());
   const [lastXpGain, setLastXpGain] = useState<number>(0);
+  const recentTopics = useRef<string[]>([]);
+  const hasInitialised = useRef(false);
 
   useEffect(() => {
     const stored = getStoredPin();
@@ -65,7 +67,8 @@ export default function Home() {
     }
   };
 
-  const generateQuestion = useCallback(async () => {
+  const generateQuestion = useCallback(async (diff?: Difficulty) => {
+    const targetDifficulty = diff || difficulty;
     setState("loading");
     setError(null);
     setFeedback(null);
@@ -75,13 +78,19 @@ export default function Home() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ difficulty }),
+        body: JSON.stringify({
+          difficulty: targetDifficulty,
+          recentTopics: recentTopics.current,
+        }),
       });
 
       if (!res.ok) throw new Error("Failed to generate question");
 
       const data: Question = await res.json();
       setQuestion(data);
+
+      recentTopics.current = [...recentTopics.current, data.topic].slice(-5);
+
       setState("answering");
     } catch {
       setError(
@@ -92,10 +101,17 @@ export default function Home() {
   }, [difficulty]);
 
   useEffect(() => {
-    if (state === "loading" && pin) {
+    if (state === "loading" && pin && !hasInitialised.current) {
+      hasInitialised.current = true;
       generateQuestion();
     }
   }, [state, pin, generateQuestion]);
+
+  const handleDifficultyChange = (d: Difficulty) => {
+    setDifficulty(d);
+    setQuestionNumber((n) => n + 1);
+    generateQuestion(d);
+  };
 
   const handleSubmit = async (
     input: string,
@@ -174,26 +190,26 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-900">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+      <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-slate-800">
+            <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">
               🐍 Python Practice
             </h1>
-            <p className="text-xs text-slate-500">Question {questionNumber}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Question {questionNumber}</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex gap-1">
               {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
                 <button
                   key={d}
-                  onClick={() => setDifficulty(d)}
+                  onClick={() => handleDifficultyChange(d)}
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                     difficulty === d
                       ? "bg-indigo-600 text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
                   }`}
                 >
                   {d}
@@ -202,7 +218,7 @@ export default function Home() {
             </div>
             <button
               onClick={handleLogout}
-              className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+              className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
               title="Switch user"
             >
               🔒
@@ -214,7 +230,7 @@ export default function Home() {
       {/* Content */}
       <div className="max-w-5xl mx-auto px-4 py-6">
         {error && (
-          <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+          <div className="mb-4 p-4 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
             {error}
           </div>
         )}
