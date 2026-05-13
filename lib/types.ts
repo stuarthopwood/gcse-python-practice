@@ -1,6 +1,7 @@
 export interface Question {
   code: string;
   topic: string;
+  category: string;
   difficulty: "easy" | "medium" | "hard";
 }
 
