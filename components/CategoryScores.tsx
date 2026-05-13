@@ -10,7 +10,7 @@ interface CategoryScoresProps {
 }
 
 export default function CategoryScores({
-  scores,
+  scores = {},
   focusCategory,
   onFocusChange,
 }: CategoryScoresProps) {

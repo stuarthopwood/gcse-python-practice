@@ -43,12 +43,16 @@ export function setStoredPin(pin: string): void {
 }
 
 export function getProgress(): Progress {
-  if (typeof window === "undefined") {
+  if (typeof window === "undefined" || typeof localStorage === "undefined") {
     return defaultProgress();
   }
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) return defaultProgress();
-  return JSON.parse(stored);
+  const parsed = JSON.parse(stored);
+  if (!parsed.categoryScores) {
+    parsed.categoryScores = {};
+  }
+  return parsed;
 }
 
 export function setProgress(progress: Progress): void {
@@ -62,6 +66,9 @@ export async function loadProgressFromServer(pin: string): Promise<Progress> {
   const data = await res.json();
 
   if (data.exists && data.progress) {
+    if (!data.progress.categoryScores) {
+      data.progress.categoryScores = {};
+    }
     setProgress(data.progress);
     return data.progress;
   }
