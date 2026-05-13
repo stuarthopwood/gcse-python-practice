@@ -36,7 +36,7 @@ export default function AnswerForm({ onSubmit, isLoading }: AnswerFormProps) {
           id="input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="w-full min-h-[100px] p-4 text-base border-2 border-slate-200 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none resize-y transition-colors"
+          className="w-full min-h-[100px] p-4 text-base text-slate-900 bg-white border-2 border-slate-200 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none resize-y transition-colors placeholder:text-slate-400"
           placeholder="e.g. It takes in a list of numbers..."
           disabled={isLoading}
         />
@@ -56,7 +56,7 @@ export default function AnswerForm({ onSubmit, isLoading }: AnswerFormProps) {
           id="processing"
           value={processing}
           onChange={(e) => setProcessing(e.target.value)}
-          className="w-full min-h-[140px] p-4 text-base border-2 border-slate-200 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none resize-y transition-colors"
+          className="w-full min-h-[140px] p-4 text-base text-slate-900 bg-white border-2 border-slate-200 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none resize-y transition-colors placeholder:text-slate-400"
           placeholder="e.g. It loops through each item and checks if..."
           disabled={isLoading}
         />
@@ -76,7 +76,7 @@ export default function AnswerForm({ onSubmit, isLoading }: AnswerFormProps) {
           id="output"
           value={output}
           onChange={(e) => setOutput(e.target.value)}
-          className="w-full min-h-[100px] p-4 text-base border-2 border-slate-200 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none resize-y transition-colors"
+          className="w-full min-h-[100px] p-4 text-base text-slate-900 bg-white border-2 border-slate-200 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none resize-y transition-colors placeholder:text-slate-400"
           placeholder="e.g. It prints out 42..."
           disabled={isLoading}
         />

@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const difficulty = body.difficulty || "medium";
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 1024,
       system: GENERATE_SYSTEM_PROMPT,
       messages: [
@@ -30,13 +30,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const question: Question = JSON.parse(content.text);
+    const text = content.text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    const question: Question = JSON.parse(text);
 
     return NextResponse.json(question);
   } catch (error) {
     console.error("Generate error:", error);
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Failed to generate question" },
+      { error: "Failed to generate question", details: message },
       { status: 500 }
     );
   }

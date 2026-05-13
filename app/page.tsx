@@ -4,8 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import CodeBlock from "@/components/CodeBlock";
 import AnswerForm from "@/components/AnswerForm";
 import Feedback from "@/components/Feedback";
+import StatsPanel from "@/components/StatsPanel";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { getProgress, recordAnswer } from "@/lib/progress";
 import type { Question, GradeResponse } from "@/lib/types";
+import type { Progress } from "@/lib/progress";
 
 type AppState = "loading" | "answering" | "grading" | "feedback";
 type Difficulty = "easy" | "medium" | "hard";
@@ -17,11 +20,18 @@ export default function Home() {
   const [questionNumber, setQuestionNumber] = useState(1);
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<Progress | null>(null);
+  const [lastXpGain, setLastXpGain] = useState<number>(0);
+
+  useEffect(() => {
+    setProgress(getProgress());
+  }, []);
 
   const generateQuestion = useCallback(async () => {
     setState("loading");
     setError(null);
     setFeedback(null);
+    setLastXpGain(0);
 
     try {
       const res = await fetch("/api/generate", {
@@ -73,6 +83,17 @@ export default function Home() {
 
       const data: GradeResponse = await res.json();
       setFeedback(data);
+
+      const prevXp = progress?.xp || 0;
+      const updated = recordAnswer(
+        data.marks,
+        data.maxMarks,
+        question.topic,
+        question.difficulty
+      );
+      setProgress(updated);
+      setLastXpGain(updated.xp - prevXp);
+
       setState("feedback");
     } catch {
       setError("Couldn't grade your answer. Try submitting again.");
@@ -89,7 +110,7 @@ export default function Home() {
     <main className="min-h-screen bg-slate-50">
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-slate-800">
               🐍 Python Practice
@@ -115,10 +136,17 @@ export default function Home() {
       </header>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-5xl mx-auto px-4 py-6">
         {error && (
           <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
             {error}
+          </div>
+        )}
+
+        {/* Stats Panel */}
+        {progress && progress.totalQuestions > 0 && (
+          <div className="mb-6">
+            <StatsPanel progress={progress} xpGained={lastXpGain} />
           </div>
         )}
 

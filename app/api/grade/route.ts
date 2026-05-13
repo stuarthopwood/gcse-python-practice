@@ -34,7 +34,7 @@ Here is the student's answer:
 Please grade this answer.`;
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 1024,
       system: GRADE_SYSTEM_PROMPT,
       messages: [
@@ -53,7 +53,8 @@ Please grade this answer.`;
       );
     }
 
-    const gradeResponse: GradeResponse = JSON.parse(content.text);
+    const text = content.text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    const gradeResponse: GradeResponse = JSON.parse(text);
 
     return NextResponse.json(gradeResponse);
   } catch (error) {
