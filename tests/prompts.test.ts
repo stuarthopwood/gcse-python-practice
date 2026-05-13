@@ -2,17 +2,23 @@ import { describe, it, expect } from "vitest";
 import { GENERATE_SYSTEM_PROMPT, GRADE_SYSTEM_PROMPT } from "@/lib/prompts";
 
 describe("GENERATE_SYSTEM_PROMPT", () => {
-  it("mentions GCSE-level concepts", () => {
-    expect(GENERATE_SYSTEM_PROMPT).toContain("For loops");
-    expect(GENERATE_SYSTEM_PROMPT).toContain("While loops");
-    expect(GENERATE_SYSTEM_PROMPT).toContain("String manipulation");
-    expect(GENERATE_SYSTEM_PROMPT).toContain("Lists");
-    expect(GENERATE_SYSTEM_PROMPT).toContain("Dictionaries");
+  it("lists all category IDs", () => {
+    expect(GENERATE_SYSTEM_PROMPT).toContain("for-loops");
+    expect(GENERATE_SYSTEM_PROMPT).toContain("while-loops");
+    expect(GENERATE_SYSTEM_PROMPT).toContain("conditionals");
+    expect(GENERATE_SYSTEM_PROMPT).toContain("strings");
+    expect(GENERATE_SYSTEM_PROMPT).toContain("lists");
+    expect(GENERATE_SYSTEM_PROMPT).toContain("dictionaries");
+    expect(GENERATE_SYSTEM_PROMPT).toContain("functions");
+    expect(GENERATE_SYSTEM_PROMPT).toContain("nested-loops");
+    expect(GENERATE_SYSTEM_PROMPT).toContain("file-handling");
+    expect(GENERATE_SYSTEM_PROMPT).toContain("validation");
   });
 
-  it("specifies JSON response format", () => {
+  it("specifies JSON response format with category", () => {
     expect(GENERATE_SYSTEM_PROMPT).toContain('"code"');
     expect(GENERATE_SYSTEM_PROMPT).toContain('"topic"');
+    expect(GENERATE_SYSTEM_PROMPT).toContain('"category"');
     expect(GENERATE_SYSTEM_PROMPT).toContain('"difficulty"');
   });
 
@@ -24,6 +30,11 @@ describe("GENERATE_SYSTEM_PROMPT", () => {
     expect(GENERATE_SYSTEM_PROMPT).toContain("Easy =");
     expect(GENERATE_SYSTEM_PROMPT).toContain("Medium =");
     expect(GENERATE_SYSTEM_PROMPT).toContain("Hard =");
+  });
+
+  it("encourages varied scenarios", () => {
+    expect(GENERATE_SYSTEM_PROMPT).toContain("VARIED scenarios");
+    expect(GENERATE_SYSTEM_PROMPT).toContain("real-world contexts");
   });
 });
 

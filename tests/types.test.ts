@@ -2,14 +2,16 @@ import { describe, it, expect } from "vitest";
 import type { Question, GradeResponse, GradeRequest } from "@/lib/types";
 
 describe("Type contracts", () => {
-  it("Question type has required fields", () => {
+  it("Question type has required fields including category", () => {
     const question: Question = {
       code: "def foo(): return 1",
       topic: "functions",
+      category: "functions",
       difficulty: "easy",
     };
     expect(question.code).toBeDefined();
     expect(question.topic).toBeDefined();
+    expect(question.category).toBeDefined();
     expect(question.difficulty).toBe("easy");
   });
 
@@ -46,11 +48,7 @@ describe("Type contracts", () => {
   });
 
   it("difficulty must be easy, medium, or hard", () => {
-    const validDifficulties: Question["difficulty"][] = [
-      "easy",
-      "medium",
-      "hard",
-    ];
+    const validDifficulties: Question["difficulty"][] = ["easy", "medium", "hard"];
     validDifficulties.forEach((d) => {
       expect(["easy", "medium", "hard"]).toContain(d);
     });
