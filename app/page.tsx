@@ -5,6 +5,7 @@ import CodeBlock from "@/components/CodeBlock";
 import AnswerForm from "@/components/AnswerForm";
 import Feedback from "@/components/Feedback";
 import StatsPanel from "@/components/StatsPanel";
+import CategoryScores from "@/components/CategoryScores";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PinEntry from "@/components/PinEntry";
 import {
@@ -15,6 +16,7 @@ import {
   loadProgressFromServer,
   saveProgressToServer,
   recordAnswer,
+  getWeakCategories,
 } from "@/lib/progress";
 import type { Question, GradeResponse } from "@/lib/types";
 import type { Progress } from "@/lib/progress";
@@ -34,7 +36,9 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<Progress>(defaultProgress());
   const [lastXpGain, setLastXpGain] = useState<number>(0);
+  const [focusCategory, setFocusCategory] = useState<string | null>(null);
   const recentTopics = useRef<string[]>([]);
+  const recentCategories = useRef<string[]>([]);
   const hasInitialised = useRef(false);
 
   useEffect(() => {
@@ -67,38 +71,49 @@ export default function Home() {
     }
   };
 
-  const generateQuestion = useCallback(async (diff?: Difficulty) => {
-    const targetDifficulty = diff || difficulty;
-    setState("loading");
-    setError(null);
-    setFeedback(null);
-    setLastXpGain(0);
+  const generateQuestion = useCallback(
+    async (diff?: Difficulty, focus?: string | null) => {
+      const targetDifficulty = diff || difficulty;
+      const targetFocus = focus !== undefined ? focus : focusCategory;
+      setState("loading");
+      setError(null);
+      setFeedback(null);
+      setLastXpGain(0);
 
-    try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          difficulty: targetDifficulty,
-          recentTopics: recentTopics.current,
-        }),
-      });
+      try {
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            difficulty: targetDifficulty,
+            recentTopics: recentTopics.current,
+            recentCategories: recentCategories.current,
+            weakCategories: getWeakCategories(progress),
+            focusCategory: targetFocus,
+          }),
+        });
 
-      if (!res.ok) throw new Error("Failed to generate question");
+        if (!res.ok) throw new Error("Failed to generate question");
 
-      const data: Question = await res.json();
-      setQuestion(data);
+        const data: Question = await res.json();
+        setQuestion(data);
 
-      recentTopics.current = [...recentTopics.current, data.topic].slice(-5);
+        recentTopics.current = [...recentTopics.current, data.topic].slice(-8);
+        recentCategories.current = [
+          ...recentCategories.current,
+          data.category,
+        ].slice(-3);
 
-      setState("answering");
-    } catch {
-      setError(
-        "Couldn't generate a question. Check your internet connection and try again."
-      );
-      setState("answering");
-    }
-  }, [difficulty]);
+        setState("answering");
+      } catch {
+        setError(
+          "Couldn't generate a question. Check your internet connection and try again."
+        );
+        setState("answering");
+      }
+    },
+    [difficulty, focusCategory, progress]
+  );
 
   useEffect(() => {
     if (state === "loading" && pin && !hasInitialised.current) {
@@ -111,6 +126,12 @@ export default function Home() {
     setDifficulty(d);
     setQuestionNumber((n) => n + 1);
     generateQuestion(d);
+  };
+
+  const handleFocusChange = (category: string | null) => {
+    setFocusCategory(category);
+    setQuestionNumber((n) => n + 1);
+    generateQuestion(undefined, category);
   };
 
   const handleSubmit = async (
@@ -146,6 +167,7 @@ export default function Home() {
         data.marks,
         data.maxMarks,
         question.topic,
+        question.category,
         question.difficulty
       );
       setProgress(updated);
@@ -175,7 +197,7 @@ export default function Home() {
   if (state === "pin") {
     if (pinLoading) {
       return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
           <LoadingSpinner message="Loading your progress..." />
         </div>
       );
@@ -193,7 +215,7 @@ export default function Home() {
     <main className="min-h-screen bg-slate-50 dark:bg-slate-900">
       {/* Header */}
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">
               🐍 Python Practice
@@ -228,17 +250,22 @@ export default function Home() {
       </header>
 
       {/* Content */}
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-4 py-6">
         {error && (
           <div className="mb-4 p-4 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
             {error}
           </div>
         )}
 
-        {/* Stats Panel */}
+        {/* Stats + Categories Row */}
         {progress.totalQuestions > 0 && (
-          <div className="mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <StatsPanel progress={progress} xpGained={lastXpGain} />
+            <CategoryScores
+              scores={progress.categoryScores}
+              focusCategory={focusCategory}
+              onFocusChange={handleFocusChange}
+            />
           </div>
         )}
 

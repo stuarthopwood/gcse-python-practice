@@ -3,7 +3,14 @@ export interface SessionRecord {
   marks: number;
   maxMarks: number;
   topic: string;
+  category: string;
   difficulty: "easy" | "medium" | "hard";
+}
+
+export interface CategoryScore {
+  attempts: number;
+  totalMarks: number;
+  totalMaxMarks: number;
 }
 
 export interface Progress {
@@ -15,6 +22,7 @@ export interface Progress {
   level: number;
   xp: number;
   sessions: SessionRecord[];
+  categoryScores: Record<string, CategoryScore>;
 }
 
 const STORAGE_KEY = "gcse-python-progress";
@@ -72,16 +80,31 @@ export function recordAnswer(
   marks: number,
   maxMarks: number,
   topic: string,
+  category: string,
   difficulty: "easy" | "medium" | "hard"
 ): Progress {
-  const progress = { ...currentProgress, sessions: [...currentProgress.sessions] };
+  const progress = {
+    ...currentProgress,
+    sessions: [...currentProgress.sessions],
+    categoryScores: { ...currentProgress.categoryScores },
+  };
 
   const record: SessionRecord = {
     date: new Date().toISOString(),
     marks,
     maxMarks,
     topic,
+    category,
     difficulty,
+  };
+
+  if (!progress.categoryScores[category]) {
+    progress.categoryScores[category] = { attempts: 0, totalMarks: 0, totalMaxMarks: 0 };
+  }
+  progress.categoryScores[category] = {
+    attempts: progress.categoryScores[category].attempts + 1,
+    totalMarks: progress.categoryScores[category].totalMarks + marks,
+    totalMaxMarks: progress.categoryScores[category].totalMaxMarks + maxMarks,
   };
 
   progress.sessions.push(record);
@@ -138,6 +161,15 @@ export function resetProgress(): void {
   localStorage.removeItem(STORAGE_KEY);
 }
 
+export function getWeakCategories(progress: Progress): string[] {
+  const scores = Object.entries(progress.categoryScores)
+    .filter(([, s]) => s.attempts >= 2)
+    .map(([id, s]) => ({ id, pct: Math.round((s.totalMarks / s.totalMaxMarks) * 100) }))
+    .sort((a, b) => a.pct - b.pct);
+
+  return scores.filter((s) => s.pct < 70).map((s) => s.id);
+}
+
 export function defaultProgress(): Progress {
   return {
     totalQuestions: 0,
@@ -148,5 +180,6 @@ export function defaultProgress(): Progress {
     level: 1,
     xp: 0,
     sessions: [],
+    categoryScores: {},
   };
 }
